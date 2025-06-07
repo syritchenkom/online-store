@@ -7,7 +7,7 @@ This is a full-stack online store application, including both frontend and backe
 The project is organized into two main parts:
 
 *   `online-store-frontend/`: Contains the React frontend application.
-*   `online-store-backend/` (or similar, please adjust if your backend has a different directory name): Contains the Node.js backend API.
+*   `online-store-backend/` : Contains the Node.js backend API.
 
 ## Frontend (online-store-frontend)
 
@@ -66,7 +66,7 @@ The backend provides the API for the online store, built with Node.js.
 
 ### Getting Started (Backend)
 
-1.  Navigate to the backend directory: `cd online-store-backend` (or your backend directory)
+1.  Navigate to the backend directory: `cd online-store-backend`
 2.  Install dependencies:
     ```bash
     npm install
