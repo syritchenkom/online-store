@@ -46,7 +46,7 @@ The frontend is built with React and TypeScript.
     ```
     The frontend will be available at `http://localhost:3000`.
 
-## Backend (online-store-backend - *Please adjust directory name if different*)
+## Backend (online-store-backend - *Backend*)
 
 The backend provides the API for the online store, built with Node.js.
 
