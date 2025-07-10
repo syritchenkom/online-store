@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Context } from "..";
 import {
@@ -33,8 +33,9 @@ export const Basket = observer(() => {
   const { basket, user } = context;
 
   if (!user.isAuth) {
-    return <div>Please log in to view your basket.</div>;
+    return <div>Proszę się zalogować, aby zobaczyć koszyk.</div>;
   }
+
   useEffect(() => {
     if (user.isAuth) {
       setLoading(true);
@@ -45,25 +46,43 @@ export const Basket = observer(() => {
         .catch((e) => console.error("Failed to fetch basket", e))
         .finally(() => setLoading(false));
     }
-  }, [basket, user.isAuth]); // Removed basket from dependencies to avoid re-fetching on item removal
+  }, [basket, user.isAuth]);
 
-  const handleRemove = (deviceId: number) => {
-    removeFromBasket(deviceId)
-      .then(() => {
-        // EN: To correctly reflect the removal of a single item (even if there are duplicates),
-        // PL: Aby poprawnie odzwierciedlić usunięcie jednego przedmiotu (nawet jeśli są duplikaty),
-        // EN: we find the index of the first item with the matching deviceId and remove it.
-        // PL: znajdujemy indeks pierwszego przedmiotu z pasującym deviceId i usuwamy go.
-        const itemIndex = basket.items.findIndex(
-          (item) => item.device.id === deviceId
-        );
-        if (itemIndex > -1) {
-          const newItems = [...basket.items];
-          newItems.splice(itemIndex, 1);
-          basket.setItems(newItems);
-        }
-      })
-      .catch((e) => console.error("Failed to remove item from basket", e));
+  // EN: Group items by device ID to display quantity. useMemo will prevent recalculation on every render.
+  // PL: Grupuj przedmioty według ID urządzenia, aby wyświetlić ilość. useMemo zapobiegnie ponownemu obliczaniu przy każdym renderowaniu.
+  const groupedItems = useMemo(() => {
+    const groups: { [key: number]: GroupedBasketItem } = {};
+    for (const item of basket.items) {
+      if (!groups[item.device.id]) {
+        groups[item.device.id] = {
+          device: item.device,
+          quantity: 0,
+        };
+      }
+      groups[item.device.id].quantity++;
+    }
+    return Object.values(groups);
+  }, [basket.items]);
+
+  // EN: A generic handler for basket actions to reduce code duplication.
+  // PL: Ogólny handler do obsługi akcji koszyka w celu zmniejszenia duplikacji kodu.
+  const handleAction = (action: Promise<any>) => {
+    setLoading(true);
+    action
+      .then(() => fetchBasket())
+      .then((data) => basket.setItems(data.basket_devices || []))
+      .catch((e) =>
+        alert(e.response?.data?.message || "Failed to update basket")
+      )
+      .finally(() => setLoading(false));
+  };
+
+  const handleDecrease = (deviceId: number) => {
+    handleAction(removeFromBasket(deviceId));
+  };
+
+  const handleIncrease = (deviceId: number) => {
+    handleAction(addToBasket(deviceId));
   };
 
   if (loading) {
@@ -77,57 +96,66 @@ export const Basket = observer(() => {
     );
   }
 
-  if (basket.items.length === 0) {
+  if (groupedItems.length === 0) {
     return (
       <Container
         className="d-flex justify-content-center align-items-center"
         style={{ height: "80vh" }}
       >
-        <h2>Ваш кошик порожній</h2>
+        <h2>Twój koszyk jest pusty</h2>
       </Container>
     );
   }
 
   return (
     <Container className="mt-4">
-      <h1>Ваш кошик</h1>
+      <h1>Twój koszyk</h1>
       <Row>
         <Col md={8}>
           <ListGroup>
-            {basket.items.map((item) => (
+            {groupedItems.map(({ device, quantity }) => (
               <ListGroup.Item
-                key={item.id}
+                key={device.id}
                 className="d-flex justify-content-between align-items-center"
               >
                 <div className="d-flex align-items-center">
                   <Image
-                    src={process.env.REACT_APP_API_URL + item.device.img}
+                    src={process.env.REACT_APP_API_URL + device.img}
                     style={{ width: "100px", marginRight: "20px" }}
-                    alt={item.device.name}
+                    alt={device.name}
                   />
                   <div>
-                    <h5>{item.device.name}</h5>
-                    <p>{item.device.price} $</p>
+                    <h5>{device.name}</h5>
+                    <p className="mb-0">{device.price} zł</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline-danger"
-                  onClick={() => handleRemove(item.device.id)}
-                >
-                  Видалити
-                </Button>
+                <div className="d-flex align-items-center">
+                  <Button
+                    variant="outline-secondary"
+                    onClick={() => handleDecrease(device.id)}
+                  >
+                    -
+                  </Button>
+                  <span className="mx-3">{quantity}</span>
+                  <Button
+                    variant="outline-secondary"
+                    onClick={() => handleIncrease(device.id)}
+                  >
+                    +
+                  </Button>
+                </div>
               </ListGroup.Item>
             ))}
           </ListGroup>
         </Col>
         <Col md={4}>
           <Card>
-            <Card.Header>Підсумок</Card.Header>
+            <Card.Header>Podsumowanie</Card.Header>
             <Card.Body>
-              <Card.Title>Загальна сума: {basket.totalPrice} $</Card.Title>
-              <Card.Text>Кількість товарів: {basket.totalCount}</Card.Text>
+              <Card.Title>Suma całkowita: {basket.totalPrice} zł</Card.Title>
+              <Card.Text>Liczba produktów: {basket.totalCount}</Card.Text>
               <Button variant="primary" className="w-100">
-                Оформити замовлення
+                Złóż zamówienie
               </Button>
             </Card.Body>
           </Card>
