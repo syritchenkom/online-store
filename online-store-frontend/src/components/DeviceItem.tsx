@@ -11,9 +11,9 @@ interface DeviceItemProps {
 }
 
 const DeviceItem: React.FC<DeviceItemProps> = ({ device }) => {
-  const { device: deviceStore } = useContext(Context)!; // Отримуємо доступ до стору
+  const { device: deviceStore } = useContext(Context)!;
   const navigate = useNavigate();
-  const brand = deviceStore.brands.find(b => b.id === device.brandId);
+  const brand = deviceStore.brands.find((b) => b.id === device.brandId);
 
   return (
     <Col
@@ -28,8 +28,8 @@ const DeviceItem: React.FC<DeviceItemProps> = ({ device }) => {
           src={process.env.REACT_APP_API_URL + device.img}
         />
         <div className="text-black-58 mt-1 d-flex justify-content-between align-items-center">
-          {/* Динамічно відображаємо назву бренду */}
-          <div>{brand?.name || 'Unknown Brand'}</div>
+          {/* PL: Dynamicznie wyświetlamy nazwę marki */}
+          <div>{brand?.name || "Nieznana marka"}</div>
           <div className="d-flex align-items-center">
             <div>{device.rating}</div>
             <Image width={20} height={20} src={star} />
