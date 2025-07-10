@@ -16,21 +16,21 @@ export const Admin = () => {
         className="mt-4 p-2"
         onClick={() => setTypeVisible(true)}
       >
-        Add Type
+        Dodaj typ
       </Button>
       <Button
         variant={"outline-dark"}
         className="mt-4 p-2"
         onClick={() => setBrandVisible(true)}
       >
-        Add Brand
+        Dodaj markę
       </Button>
       <Button
         variant={"outline-dark"}
         className="mt-4 p-2"
         onClick={() => setDeviceVisible(true)}
       >
-        Add Device
+        Dodaj urządzenie
       </Button>
       <CreateBrand show={brandVisible} onHide={() => setBrandVisible(false)} />
       <CreateDevice
