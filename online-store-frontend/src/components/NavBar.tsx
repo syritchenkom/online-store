@@ -3,7 +3,7 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { observer } from "mobx-react-lite";
-import { Context } from "../index"; // Імпортуємо Context
+import { Context } from "../index";
 import { Button, Badge } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 import {
@@ -11,34 +11,34 @@ import {
   BASKET_ROUTE,
   LOGIN_ROUTE,
   SHOP_ROUTE,
-} from "../utils/consts"; // Додано ADMIN_ROUTE
-import { useNavigate } from "react-router-dom"; // Змінено useHistory на useNavigate
+} from "../utils/consts";
+import { useNavigate } from "react-router-dom";
 
 const NavBar = observer(() => {
   const contextValue = useContext(Context);
 
   if (!contextValue) {
-    // Цей випадок не повинен траплятися, якщо NavBar завжди рендериться всередині Provider
-    return null; // Або можна повернути компонент завантаження/помилки
+    // PL: Ten przypadek nie powinien się zdarzyć, jeśli NavBar jest zawsze renderowany wewnątrz Provider
+    return null; // PL: Lub można zwrócić komponent ładowania/błędu
   }
   const { user, basket } = contextValue;
-  const navigate = useNavigate(); // Змінено history на navigate
+  const navigate = useNavigate();
 
   const logOut = () => {
-    user.setUser({}); // Скидаємо дані користувача
-    user.setIsAuth(false); // Встановлюємо, що користувач не авторизований
-    localStorage.removeItem("token"); // Найважливіше: видаляємо токен зі сховища
-    navigate(LOGIN_ROUTE); // Опціонально, але рекомендовано: перенаправляємо на сторінку входу
+    user.setUser({}); // PL: Resetujemy dane użytkownika
+    user.setIsAuth(false); // PL: Ustawiamy, że użytkownik nie jest autoryzowany
+    localStorage.removeItem("token"); // PL: Najważniejsze: usuwamy token z magazynu
+    navigate(LOGIN_ROUTE); // PL: Opcjonalnie, ale zalecane: przekierowujemy na stronę logowania
   };
 
-  // Приклад використання:
-  // return <div>{user.isAuth ? "Авторизований" : "Гість"}</div>;
+  // PL: Przykład użycia:
+  // return <div>{user.isAuth ? "Autoryzowany" : "Gość"}</div>;
   return (
     <Navbar bg="dark" data-bs-theme="dark">
       <Container>
         {/* <Navbar.Brand href="#home">Navbar</Navbar.Brand> */}
         <NavLink style={{ color: "white" }} to={SHOP_ROUTE}>
-          Go to shops
+          Sklep
         </NavLink>
         {user.isAuth ? (
           <Nav
@@ -51,35 +51,35 @@ const NavBar = observer(() => {
               className="me-2"
               onClick={() => navigate(BASKET_ROUTE)}
             >
-              Кошик
-              {/* Показуємо кількість товарів, якщо вона більша за 0 */}
+              Koszyk
+              {/* PL: Pokazujemy liczbę produktów, jeśli jest większa od 0 */}
               {basket.items.length > 0 && (
                 <Badge bg="danger" className="ms-2">
                   {basket.items.length}
                 </Badge>
               )}
             </Button>
-            {/* Кнопка адмін-панелі з'являється тільки для адміністратора */}
+            {/* PL: Przycisk panelu admina pojawia się tylko dla administratora */}
             {user.user.role === "ADMIN" && (
               <Button
                 variant={"outline-light"}
                 onClick={() => navigate(ADMIN_ROUTE)}
-                className="me-2" // Додаємо відступ справа для кнопки виходу
+                className="me-2" // PL: Dodajemy margines po prawej dla przycisku wyjścia
               >
-                Admin panel
+                Panel admina
               </Button>
             )}
             <Button variant={"outline-light"} onClick={logOut}>
-              Вийти
+              Wyjdź
             </Button>
           </Nav>
         ) : (
           <Nav className="ms-auto" style={{ color: "white" }}>
             <Button
-              variant={"outline-light"} // Змінено ml-auto на ms-auto для Bootstrap 5
+              variant={"outline-light"}
               onClick={() => navigate(LOGIN_ROUTE)}
             >
-              Authorization
+              Autoryzacja
             </Button>
           </Nav>
         )}
