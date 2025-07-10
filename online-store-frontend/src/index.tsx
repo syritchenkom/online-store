@@ -3,15 +3,15 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { createUserStore } from "./store/UserStore"; // Імпортуємо функцію-конструктор
-import { createDeviceStore } from "./store/DeviceStore"; // Імпортуємо функцію-конструктор
+import { createUserStore } from "./store/UserStore"; // PL: Importujemy funkcję-konstruktor
+import { createDeviceStore } from "./store/DeviceStore"; // PL: Importujemy funkcję-konstruktor
 import { createBasketStore } from "./store/BasketStore";
 
-// Визначаємо інтерфейс для значення контексту
+// PL: Definiujemy interfejs dla wartości kontekstu
 export interface IAppContext {
-  user: ReturnType<typeof createUserStore>; // Тип для екземпляра UserStore
-  device: ReturnType<typeof createDeviceStore>; // Тип для екземпляра DeviceStore
-  basket: ReturnType<typeof createBasketStore>; // Тип для екземпляра BasketStore
+  user: ReturnType<typeof createUserStore>; // PL: Typ dla instancji UserStore
+  device: ReturnType<typeof createDeviceStore>; // PL: Typ dla instancji DeviceStore
+  basket: ReturnType<typeof createBasketStore>; // PL: Typ dla instancji BasketStore
 }
 
 export const Context = createContext<IAppContext | null>(null);
@@ -25,9 +25,9 @@ root.render(
   <React.StrictMode>
     <Context.Provider
       value={{
-        user: createUserStore(), // Викликаємо функцію для створення екземпляра
-        device: createDeviceStore(), // Викликаємо функцію для створення екземпляра
-        basket: createBasketStore(), // Викликаємо функцію для створення екземпляра
+        user: createUserStore(), // PL: Wywołujemy funkcję do tworzenia instancji
+        device: createDeviceStore(), // PL: Wywołujemy funkcję do tworzenia instancji
+        basket: createBasketStore(), // PL: Wywołujemy funkcję do tworzenia instancji
       }}
     >
       <App />
