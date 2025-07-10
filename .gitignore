@@ -1,8 +1,25 @@
+# Dependencies
+/online-store-frontend/node_modules
+/online-store-backend/node_modules
+
+# Build artifacts
+/online-store-frontend/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
 # macOS
 .DS_Store
 
 # IDE-specific
 .idea/
 .vscode/
-
-npm-debug.log*
+ 
+# User-uploaded content
+/online-store-backend/static/
