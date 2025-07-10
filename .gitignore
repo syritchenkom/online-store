@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# IDE-specific
+.idea/
+.vscode/
+
+npm-debug.log*
