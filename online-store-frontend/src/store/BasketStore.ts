@@ -3,7 +3,7 @@ import {IBasketItem} from "../http/basketAPI";
 
 export function createBasketStore() {
     const store = {
-        _items: [] as IBasketItem[], // Ініціалізуємо масив для зберігання товарів у кошику
+        _items: [] as IBasketItem[], // PL: Inicjalizujemy tablicę do przechowywania produktów w koszyku
 
         setItems(items: IBasketItem[]) {
             this._items = items;
@@ -22,7 +22,7 @@ export function createBasketStore() {
         },
 
         get totalCount(): number {
-            return this._items.length; // Повертаємо кількість товарів у кошику
+            return this._items.length; // PL: Zwracamy liczbę produktów w koszyku
         },
 
         get totalPrice(): number {
@@ -31,7 +31,7 @@ export function createBasketStore() {
             }, 0);
         },
         clearBasket() {
-            this._items = []; // Очищаємо кошик
+            this._items = []; // PL: Czyścimy koszyk
         }
         
     };
