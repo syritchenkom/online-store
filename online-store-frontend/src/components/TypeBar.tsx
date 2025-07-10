@@ -17,21 +17,21 @@ const TypeBar = observer(() => {
 
   const handleTypeDelete = async (typeId: number, typeName: string) => {
     if (
-      window.confirm(`Are you sure you want to delete the type "${typeName}"?`)
+      window.confirm(`Czy na pewno chcesz usunąć typ "${typeName}"?`)
     ) {
       try {
         // Assuming you have a function to delete the type
         await deleteType(typeId);
         const updatedTypes = await fetchTypes();
         device.setTypes(updatedTypes);
-        alert(`Type "${typeName}" deleted successfully.`);
+        alert(`Typ "${typeName}" został pomyślnie usunięty.`);
         if (device.selectedType?.id === typeId) {
           device.setSelectedType(null);
         }
       } catch (error: any) {
         alert(
           error.response?.data?.message ||
-            "Failed to delete type. Please try again later."
+            "Nie udało się usunąć typu. Spróbuj ponownie później."
         );
         console.error("Failed to delete type:", error);
       }
