@@ -1,12 +1,23 @@
 require('dotenv').config(); 
 
 const express = require('express');
+const sequelize = require('./db');
+const models = require('./models/models'); // Припускаємо, що моделі знаходяться тут
+const cors = require('cors');
 const fileUpload = require('express-fileupload'); // EN: Middleware for handling file uploads. PL: Middleware do obsługi przesyłania plików.
+const path = require('path');
 const app = express();
 
+// EN: Use CORS middleware to allow cross-origin requests.
+// PL: Użyj middleware CORS, aby zezwolić na żądania z innych domen.
+app.use(cors());
 // EN: Middleware for parsing JSON request bodies.
 // PL: Middleware do parsowania ciał żądań JSON.
 app.use(express.json({limit: '50mb'})); // Increased limit for larger payloads
+
+// EN: Middleware for serving static files (e.g., images).
+// PL: Middleware do serwowania plików statycznych (np. obrazów).
+app.use(express.static(path.resolve(__dirname, 'static')));
 
 // EN: Middleware for handling file uploads.
 // PL: Middleware do obsługi przesyłania plików.
@@ -34,10 +45,8 @@ const PORT = process.env.PORT || 5001;
 
 const start = async () => {
     try {
-        // EN: Database connection or synchronization can be done here.
-        // PL: Tutaj można nawiązać połączenie z bazą danych lub przeprowadzić synchronizację.
-        // EN: You might have sequelize.authenticate() or sequelize.sync() here.
-        // PL: Tutaj możesz mieć sequelize.authenticate() lub sequelize.sync().
+        await sequelize.authenticate(); // EN: Check database connection. PL: Sprawdź połączenie z bazą danych.
+        await sequelize.sync(); // EN: Sync database models. PL: Synchronizuj modele bazy danych.
         app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
     } catch (e) {
         console.log(e);

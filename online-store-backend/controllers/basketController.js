@@ -89,7 +89,8 @@ class BasketController {
             // EN: Find and delete the specific BasketDevice entry.
             // PL: Znajdź i usuń konkretny wpis BasketDevice.
             const deletedCount = await BasketDevice.destroy({
-                where: { basketId: basket.id, deviceId: deviceId }
+                where: { basketId: basket.id, deviceId: deviceId },
+                limit: 1 // EN: Important: delete only one instance of the item. // PL: Ważne: usuń tylko jedną instancję przedmiotu. 
             });
 
             if (deletedCount === 0) {

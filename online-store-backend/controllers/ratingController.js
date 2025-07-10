@@ -1,61 +1,64 @@
 const { Rating, Device, User } = require('../models/models');
 const ApiError = require('../error/ApiError');
-const sequelize = require('../db'); // EN: For calculating average rating // PL: Do obliczania średniej oceny
+const sequelize = require('../db');
 
 class RatingController {
     async setRating(req, res, next) {
+        // EN: We use a transaction to ensure that all operations are either successful or none are.
+        // PL: Używamy transakcji, aby zagwarantować, że wszystkie operacje zakończą się sukcesem, albo żadna z nich nie zostanie wykonana.
+        const t = await sequelize.transaction();
         try {
             const { deviceId, rate } = req.body;
-            const userId = req.user.id; // EN: Assuming authMiddleware provides req.user // PL: Zakładając, że authMiddleware dostarcza req.user
+            // EN: We take the user ID from the token (provided by authMiddleware).
+            // PL: Pobieramy ID użytkownika z tokena (dostarczonego przez authMiddleware).
+            const userId = req.user.id;
 
-            if (!deviceId || rate === undefined) {
+            if (!rate || !deviceId) {
+                await t.rollback();
                 return next(ApiError.badRequest('Nie podano ID urządzenia lub oceny'));
             }
 
-            if (rate < 1 || rate > 5) { // EN: Assuming a 1-5 rating scale // PL: Zakładając skalę ocen 1-5
+            if (rate < 1 || rate > 5) {
+                await t.rollback();
                 return next(ApiError.badRequest('Ocena musi być liczbą od 1 do 5'));
             }
 
-            // EN: Check if device exists
-            // PL: Sprawdź, czy urządzenie istnieje
-            const device = await Device.findByPk(deviceId);
-            if (!device) {
-                return next(ApiError.notFound('Urządzenie nie zostało znalezione'));
-            }
+            // EN: Create or update the rating for this user and device within the transaction.
+            // PL: Tworzymy lub aktualizujemy ocenę dla tego użytkownika i urządzenia w ramach transakcji.
+            await Rating.upsert({
+                userId,
+                deviceId,
+                rate
+            }, { transaction: t });
 
-            // EN: Check if user has already rated this device, if so, update it. Otherwise, create it.
-            // PL: Sprawdź, czy użytkownik już ocenił to urządzenie, jeśli tak, zaktualizuj. W przeciwnym razie utwórz.
-            let rating = await Rating.findOne({ where: { userId, deviceId } });
-
-            if (rating) {
-                rating.rate = rate;
-                await rating.save();
-            } else {
-                rating = await Rating.create({ userId, deviceId, rate });
-            }
-
-            // EN: After setting/updating a rating, recalculate the device's average rating
-            // PL: Po ustawieniu/aktualizacji oceny, przelicz średnią ocenę urządzenia
-            const averageRatingResult = await Rating.findOne({
+            // EN: Recalculate the average rating for the device.
+            // PL: Przeliczamy średnią ocenę dla urządzenia.
+            const averageResult = await Rating.findOne({
                 where: { deviceId },
-                attributes: [[sequelize.fn('AVG', sequelize.col('rate')), 'averageRating']]
+                attributes: [[sequelize.fn('AVG', sequelize.col('rate')), 'avgRating']],
+                transaction: t,
+                raw: true
             });
 
-            let averageRating = 0;
-            if (averageRatingResult && averageRatingResult.dataValues.averageRating !== null) {
-                averageRating = parseFloat(parseFloat(averageRatingResult.dataValues.averageRating).toFixed(1));
-            }
+            // EN: Calculate the raw average and then round it to one decimal place.
+            // PL: Oblicz surową średnią, a następnie zaokrąglij ją do jednego miejsca po przecinku.
+            const rawAvg = averageResult.avgRating ? parseFloat(averageResult.avgRating) : 0;
+            const newAverageRating = Math.round(rawAvg * 10) / 10;
 
-            // EN: Update the device's rating
-            // PL: Zaktualizuj ocenę urządzenia
-            await Device.update({ rating: averageRating }, { where: { id: deviceId } });
+            // EN: Update the rating field in the Device model.
+            // PL: Aktualizujemy pole oceny w modelu Device.
+            await Device.update({ rating: newAverageRating }, { where: { id: deviceId }, transaction: t });
 
+            // EN: Commit the transaction, applying all changes.
+            // PL: Zatwierdzamy transakcję, stosując wszystkie zmiany.
+            await t.commit();
 
-            return res.json({ rating, averageDeviceRating: averageRating });
+            return res.json({ message: 'Ocena została zapisana.', newRating: newAverageRating });
         } catch (e) {
+            // EN: Rollback all changes in case of an error.
+            // PL: Wycofujemy wszystkie zmiany w przypadku błędu.
+            await t.rollback();
             console.error('Błąd podczas ustawiania oceny:', e);
-            // EN: Check for specific database errors if needed
-            // PL: W razie potrzeby sprawdź określone błędy bazy danych
             if (e.name === 'SequelizeForeignKeyConstraintError') {
                  return next(ApiError.badRequest('Nieprawidłowe ID urządzenia lub użytkownika'));
             }
@@ -72,10 +75,8 @@ class RatingController {
 
             const ratings = await Rating.findAll({
                 where: { deviceId },
-                // EN: Include User information if you want to display who left the rating.
-                // PL: Dołącz informacje o użytkowniku, jeśli chcesz wyświetlić, kto zostawił ocenę.
-                include: [{ model: User, attributes: ['id', 'email'] }], 
-                attributes: ['id', 'rate', 'createdAt'] // EN: Select specific attributes from Rating model // PL: Wybierz określone atrybuty z modelu Rating
+                include: [{ model: User, attributes: ['id', 'email'] }],
+                attributes: ['id', 'rate', 'createdAt']
             });
 
             return res.json(ratings);

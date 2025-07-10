@@ -23,7 +23,12 @@ const generateJwt = (id, email, role) => {
 class UserController {
     async registration(req, res, next) {
         try {
-            const { email, password, role } = req.body; // EN: `role` can be undefined if not sent by the client. // PL: `role` może być niezdefiniowane, jeśli nie zostało wysłane przez klienta.
+            // EN: The `role` should not be taken from the request body for security reasons.
+            // PL: Ze względów bezpieczeństwa `rola` nie powinna być pobierana z ciała żądania.
+            // EN: It's assigned a default value of 'USER' here.
+            // PL: Tutaj przypisano jej domyślną wartość 'USER'.
+            const { email, password } = req.body;
+            const role = 'USER'; // EN: Hardcode the role to 'USER' for all new registrations. // PL: Ustaw na stałe rolę 'USER' dla wszystkich nowych rejestracji.
     
             if (!email || !password) {
                 return next(ApiError.badRequest('Niepoprawny email lub hasło'))
@@ -139,6 +144,52 @@ class UserController {
         } catch (error) {
             console.error('Błąd podczas usuwania użytkownika:', error);
             next(ApiError.internal('Wystąpił błąd podczas próby usunięcia użytkownika')); // PL: Wystąpił błąd podczas próby usunięcia użytkownika
+        }
+    }
+
+    async getAllUsers(req, res, next) {
+        try {
+            // EN: This route should only be accessible to admins.
+            // PL: Ta trasa powinna być dostępna tylko dla administratorów.
+            const users = await User.findAll({
+                // EN: Explicitly select attributes to exclude the password hash.
+                // PL: Jawnie wybierz atrybuty, aby wykluczyć hash hasła.
+                attributes: ['id', 'email', 'role', 'createdAt', 'updatedAt']
+            });
+            return res.json(users);
+        } catch (error) {
+            console.error('Błąd podczas pobierania wszystkich użytkowników:', error);
+            next(ApiError.internal('Wystąpił błąd podczas pobierania listy użytkowników.'));
+        }
+    }
+
+    async updateRole(req, res, next) {
+        try {
+            const { id } = req.params; // EN: Get user ID from URL parameters. // PL: Pobierz ID użytkownika z parametrów URL.
+            const { role } = req.body; // EN: Get the new role from the request body. // PL: Pobierz nową rolę z ciała żądania.
+
+            if (!id) {
+                return next(ApiError.badRequest('Nie podano ID użytkownika.'));
+            }
+
+            // EN: Validate the role to prevent setting arbitrary strings.
+            // PL: Sprawdź poprawność roli, aby zapobiec ustawianiu dowolnych ciągów znaków.
+            if (!['USER', 'ADMIN'].includes(role)) {
+                return next(ApiError.badRequest(`Nieprawidłowa rola: ${role}. Dozwolone wartości: USER, ADMIN.`));
+            }
+
+            const user = await User.findByPk(id);
+            if (!user) {
+                return next(ApiError.notFound('Użytkownik o podanym ID nie istnieje.'));
+            }
+
+            user.role = role;
+            await user.save(); // EN: Save the changes to the database. // PL: Zapisz zmiany w bazie danych.
+
+            return res.json({ id: user.id, email: user.email, role: user.role }); // EN: Return updated user data (without password). // PL: Zwróć zaktualizowane dane użytkownika (bez hasła).
+        } catch (error) {
+            console.error('Błąd podczas aktualizacji roli użytkownika:', error);
+            next(ApiError.internal('Wystąpił błąd podczas próby aktualizacji roli użytkownika.'));
         }
     }
 }

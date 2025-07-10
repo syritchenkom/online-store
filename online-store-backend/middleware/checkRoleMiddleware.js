@@ -11,7 +11,7 @@ module.exports = function (role) {
         // EN: OPTIONS method requests do not require role checking.
         // PL: Żądania metodą OPTIONS nie wymagają sprawdzania ról.
         if (req.method === 'OPTIONS') {
-            next();
+            return next();
         }
         try {
             // EN: The user data should have been attached by the authMiddleware (req.user).
