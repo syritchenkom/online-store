@@ -14,10 +14,10 @@ export const Auth = observer(() => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  // Перевірка, чи існує контекст
+  // PL: Sprawdzenie, czy kontekst istnieje
   if (!contextValue) {
-    // Цей випадок не повинен траплятися, якщо Auth завжди рендериться всередині Provider
-    return null; // Або можна повернути компонент завантаження/помилки
+    // PL: Ten przypadek nie powinien się zdarzyć, jeśli Auth jest zawsze renderowany wewnątrz Provider
+    return null; // PL: Lub można zwrócić komponent ładowania/błędu
   }
   const { user } = contextValue;
 
@@ -29,15 +29,15 @@ export const Auth = observer(() => {
       } else {
         data = await registration(email, password);
       }
-      user.setUser(data); // Виправляємо логічну помилку: передаємо дані з сервера
+      user.setUser(data); // PL: Poprawiamy błąd logiczny: przekazujemy dane z serwera
       user.setIsAuth(true);
-      navigate(SHOP_ROUTE); // Перенаправляємо на головну сторінку
+      navigate(SHOP_ROUTE); // PL: Przekierowujemy na stronę główną
     } catch (e: any) {
-      // Обробка помилок, наприклад, виведення повідомлення з відповіді сервера
+      // PL: Obsługa błędów, na przykład wyświetlanie komunikatu z odpowiedzi serwera
       if (e.response && e.response.data && e.response.data.message) {
         alert(e.response.data.message);
       } else {
-        alert("Виникла невідома помилка");
+        alert("Wystąpił nieznany błąd");
       }
     }
   };
@@ -48,18 +48,18 @@ export const Auth = observer(() => {
       style={{ height: window.innerHeight - 54 }}
     >
       <Card style={{ width: 600 }} className="p-5">
-        <h2 className="m-auto">{isLogin ? "Authorization" : "Registration"}</h2>
+        <h2 className="m-auto">{isLogin ? "Autoryzacja" : "Rejestracja"}</h2>
         <Form className="d-flex flex-column">
           <Form.Control
             className="mt-3"
-            placeholder="Write here your e-mail"
+            placeholder="Wpisz tutaj swój e-mail"
             value={email}
             autoComplete="email"
             onChange={(e) => setEmail(e.target.value)}
           />
           <Form.Control
             className="mt-3"
-            placeholder="Write here your password..."
+            placeholder="Wpisz tutaj swoje hasło..."
             value={password}
             autoComplete={isLogin ? "current-password" : "new-password"}
             onChange={(e) => setPassword(e.target.value)}
@@ -68,17 +68,16 @@ export const Auth = observer(() => {
           <Row className="d-flex justify-content-between mt-3 pl-3 pr-3">
             {isLogin ? (
               <div>
-                Not have account?
-                <NavLink to={REGISTRATION_ROUTE}>Registration please!</NavLink>
+                Nie masz konta?{" "}
+                <NavLink to={REGISTRATION_ROUTE}>Zarejestruj się!</NavLink>
               </div>
             ) : (
               <div>
-                Already have account?
-                <NavLink to={LOGIN_ROUTE}>Login please!</NavLink>
+                Masz już konto? <NavLink to={LOGIN_ROUTE}>Zaloguj się!</NavLink>
               </div>
             )}
             <Button variant={"outline-success"} onClick={click}>
-              {isLogin ? "Login" : "Registration"}
+              {isLogin ? "Zaloguj" : "Zarejestruj"}
             </Button>
           </Row>
         </Form>
