@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-// import logo from "./logo.svg";
 import "./App.css";
 import { AppRouter } from "./components/AppRouter";
 import { BrowserRouter } from "react-router-dom";
@@ -14,9 +13,9 @@ const App = observer(() => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Перевіряємо, чи існує контекст, перш ніж його використовувати
+    // PL: Sprawdzamy, czy kontekst istnieje, zanim go użyjemy
     if (!contextValue) {
-      setLoading(false); // Зупиняємо завантаження, якщо контексту немає
+      setLoading(false); // PL: Zatrzymujemy ładowanie, jeśli nie ma kontekstu
       return;
     }
     const { user } = contextValue;
@@ -27,17 +26,19 @@ const App = observer(() => {
         user.setIsAuth(true);
       })
       .catch((error) => {
-        // Це очікувана поведінка, якщо користувач не авторизований (немає токена або він недійсний)
-        console.log("Authentication check failed, user is not logged in.");
+        // PL: To jest oczekiwane zachowanie, jeśli użytkownik nie jest autoryzowany (brak tokenu lub jest on nieprawidłowy)
+        console.log(
+          "Sprawdzanie autentykacji nie powiodło się, użytkownik nie jest zalogowany."
+        );
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [contextValue]); // Додаємо contextValue в залежності, щоб уникнути stale closure
+  }, [contextValue]); // PL: Dodajemy contextValue do zależności, aby uniknąć stale closure
 
   if (!contextValue) {
-    // Критична помилка, якщо додаток не обгорнутий в Provider
-    return <div>Error: App is not wrapped in Context.Provider</div>;
+    // PL: Błąd krytyczny, jeśli aplikacja nie jest opakowana w Provider
+    return <div>Błąd: Aplikacja nie jest opakowana w Context.Provider</div>;
   }
 
   if (loading) {
@@ -56,22 +57,6 @@ const App = observer(() => {
       <NavBar />
       <AppRouter />
     </BrowserRouter>
-    // <div className="App">
-    //   <header className="App-header">
-    //     <img src={logo} className="App-logo" alt="logo" />
-    //     <p>
-    //       Edit <code>src/App.tsx</code> and save to reload.
-    //     </p>
-    //     <a
-    //       className="App-link"
-    //       href="https://reactjs.org"
-    //       target="_blank"
-    //       rel="noopener noreferrer"
-    //     >
-    //       Learn React
-    //     </a>
-    //   </header>
-    // </div>
   );
 });
 
