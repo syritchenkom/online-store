@@ -21,37 +21,37 @@ export const DevicePage = observer(() => {
   const contextValue = useContext(Context);
   const navigate = useNavigate();
 
-  // Захист від випадку, коли компонент рендериться поза провайдером контексту
+  // PL: Zabezpieczenie przed renderowaniem komponentu poza dostawcą kontekstu
   if (!contextValue) {
     return <div>Error: Component is not wrapped in Context.Provider</div>;
   }
   const { user, basket } = contextValue;
 
-  // 1. Ініціалізуємо стан як null, щоб чітко розрізняти "ще не завантажено" і "завантажено, але порожньо"
+  // PL: 1. Inicjalizujemy stan jako null, aby wyraźnie odróżnić "jeszcze nie załadowano" od "załadowano, ale pusto"
   const [device, setDevice] = useState<IFullDevice | null>(null);
   const [ratingHover, setRatingHover] = useState(0);
   const [loading, setLoading] = useState(true);
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    // 2. Перевіряємо, чи є 'id' в URL, інакше запит не має сенсу
+    // PL: 2. Sprawdzamy, czy 'id' jest w URL, w przeciwnym razie żądanie nie ma sensu
     if (id && !isNaN(Number(id))) {
       setLoading(true);
-      // 3. Перетворюємо 'id' (який є рядком) на число для API-запиту
+      // PL: 3. Konwertujemy 'id' (który jest stringiem) na liczbę dla żądania API
       fetchOneDevice(Number(id))
-        .then((data) => setDevice(data)) // Тепер приводити тип не потрібно, бо він узгоджений
-        .catch((e) => console.error("Failed to fetch device:", e)) // Додаємо обробку помилок
-        .finally(() => setLoading(false)); // Зупиняємо завантаження в будь-якому випадку
+        .then((data) => setDevice(data)) // PL: Teraz rzutowanie typu nie jest potrzebne, ponieważ jest spójne
+        .catch((e) => console.error("Failed to fetch device:", e)) // PL: Dodajemy obsługę błędów
+        .finally(() => setLoading(false)); // PL: Zatrzymujemy ładowanie w każdym przypadku
     } else {
-      // Якщо id відсутній або не є числом, зупиняємо завантаження
-      // і встановлюємо device в null, щоб показати "Пристрій не знайдено"
+      // PL: Jeśli id jest nieobecne lub nie jest liczbą, zatrzymujemy ładowanie
+      // PL: i ustawiamy device na null, aby pokazać "Urządzenie nie znaleziono"
       setLoading(false);
       setDevice(null);
     }
-    // 4. Додаємо 'id' в масив залежностей, щоб компонент оновлювався, якщо id в URL зміниться
+    // PL: 4. Dodajemy 'id' do tablicy zależności, aby komponent aktualizował się, jeśli id w URL się zmieni
   }, [id]);
 
-  // 5. Показуємо спіннер, поки дані завантажуються
+  // PL: 5. Pokazujemy spinner, dopóki dane się ładują
   if (loading) {
     return (
       <div
@@ -63,34 +63,34 @@ export const DevicePage = observer(() => {
     );
   }
 
-  // 6. Показуємо повідомлення, якщо пристрій не знайдено після завантаження
+  // PL: 6. Pokazujemy komunikat, jeśli urządzenie nie zostało znalezione po załadowaniu
   if (!device) {
     return (
       <div
         className="d-flex justify-content-center align-items-center"
         style={{ height: "100vh" }}
       >
-        Пристрій не знайдено
+        Nie znaleziono urządzenia
       </div>
     );
   }
 
   const handleRateDevice = async (rate: number) => {
     if (!user.isAuth) {
-      alert("Щоб поставити оцінку, будь ласка, авторизуйтесь.");
+      alert("Aby wystawić ocenę, proszę się zalogować.");
       navigate(LOGIN_ROUTE);
       return;
     }
     if (device) {
       try {
         const response = await setDeviceRating(device.id, rate);
-        // Оновлюємо рейтинг пристрою на сторінці, щоб користувач одразу бачив результат
+        // PL: Aktualizujemy ocenę urządzenia na stronie, aby użytkownik od razu widział wynik
         setDevice((prevDevice) =>
           prevDevice ? { ...prevDevice, rating: response.newRating } : null
         );
-        alert("Дякуємо за вашу оцінку!");
+        alert("Dziękujemy za Twoją ocenę!");
       } catch (e: any) {
-        alert(e.response?.data?.message || "Не вдалося поставити оцінку.");
+        alert(e.response?.data?.message || "Nie udało się wystawić oceny.");
         console.error("Failed to set rating:", e);
       }
     }
@@ -100,7 +100,7 @@ export const DevicePage = observer(() => {
     if (device) {
       addToBasket(device.id)
         .then(async () => {
-          alert(`Device "${device.name}" added to basket.}`);
+          alert(`Urządzenie "${device.name}" dodane do koszyka!`);
           // EN: After adding, we re-fetch the basket to update the state and the counter in the NavBar.
           // PL: Po dodaniu, ponownie pobieramy koszyk, aby zaktualizować stan i licznik w NavBar.
 
@@ -108,7 +108,10 @@ export const DevicePage = observer(() => {
           basket.setItems(data.basket_devices || []);
         })
         .catch((e) => {
-          alert(e.response?.data?.message || "Failed to add device to basket.");
+          alert(
+            e.response?.data?.message ||
+              "Nie udało się dodać produktu do koszyka."
+          );
         });
     }
   };
@@ -141,7 +144,7 @@ export const DevicePage = observer(() => {
             </div>
             {user.isAuth && (
               <div className="mt-3">
-                <h5>Оцініть товар:</h5>
+                <h5>Oceń produkt:</h5>
                 <div
                   className="d-flex align-items-center justify-content-center"
                   onMouseLeave={() => setRatingHover(0)}
@@ -175,32 +178,27 @@ export const DevicePage = observer(() => {
               border: "5px solid lightgray",
             }}
           >
-            <h3>From: {device.price} $</h3>
+            <h3>Od: {device.price} zł</h3>
             <Button variant={"outline-dark"} onClick={handleAddToBasket}>
-              Add to basket
+              Dodaj do koszyka
             </Button>
           </Card>
         </Col>
       </Row>
       <Row className="d-flex flex-column m-3">
-        <h1>Characteristics</h1>
-        {device.info.map(
-          (
-            info,
-            index // Перебираємо характеристики з завантаженого пристрою
-          ) => (
-            <Row
-              key={info.id} // Використовуємо унікальний id характеристики як ключ
-              className="mt-2 p-2"
-              style={{
-                background: index % 2 === 0 ? "lightgray" : "transparent",
-                padding: 10,
-              }}
-            >
-              {info.title}: {info.description}
-            </Row>
-          )
-        )}
+        <h1>Charakterystyka</h1>
+        {device.info.map((info, index) => (
+          <Row
+            key={info.id}
+            className="mt-2 p-2"
+            style={{
+              background: index % 2 === 0 ? "lightgray" : "transparent",
+              padding: 10,
+            }}
+          >
+            {info.title}: {info.description}
+          </Row>
+        ))}
       </Row>
     </Container>
   );
