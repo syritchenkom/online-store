@@ -2,9 +2,6 @@
 
 A complete e-commerce platform built with React (TypeScript) for the frontend and Node.js (Express, PostgreSQL, Sequelize) for the backend.
 
-![Project Screenshot](https://via.placeholder.com/800x450.png?text=Your+App+Screenshot+Here)
-*<p align="center">Add a screenshot or GIF of your application here.</p>*
-
 ---
 
 ## ✨ Features
