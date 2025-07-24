@@ -139,7 +139,6 @@ const CreateDevice: React.FC<CreateDeviceProps> = observer(
               className="mt-3"
               placeholder="Введіть вартість пристрою"
               type="number"
-              
             />
             <Form.Control className="mt-3" type="file" onChange={selectFile} />
             <hr />

@@ -1,4 +1,4 @@
-import {  makeAutoObservable } from "mobx";
+import { makeAutoObservable } from "mobx";
 import {IBasketItem} from "../http/basketAPI";
 
 export function createBasketStore() {
@@ -22,13 +22,15 @@ export function createBasketStore() {
         },
 
         get totalCount(): number {
-            return this._items.length; // PL: Zwracamy liczbę produktów w koszyku
+            // EN: Correctly calculate the total number of items by summing their quantities.
+            // PL: Poprawnie oblicz całkowitą liczbę przedmiotów, sumując ich ilości.
+            return this._items.reduce((sum, item) => sum + item.quantity, 0);
         },
 
         get totalPrice(): number {
-            return this._items.reduce((sum, item) => {
-                return sum + item.device.price;
-            }, 0);
+            // EN: Correctly calculate the total price by multiplying the price of each item by its quantity.
+            // PL: Poprawnie oblicz całkowitą cenę, mnożąc cenę każdego przedmiotu przez jego ilość.
+            return this._items.reduce((sum, item) => sum + (item.device.price * item.quantity), 0);
         },
         clearBasket() {
             this._items = []; // PL: Czyścimy koszyk

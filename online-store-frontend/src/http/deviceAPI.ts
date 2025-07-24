@@ -12,32 +12,32 @@ interface IDevicesResponse {
 }
 
 export const createType = async (type: CreateTypeDto): Promise<IType> => {
-  const {data} = await $authHost.post("api/type", type);
+  const {data} = await $authHost.post("api/v1/types", type);
   return data;
 }
 
 export const fetchTypes = async (): Promise<IType[]> => {
-    const {data} = await $host.get("api/type");
+    const {data} = await $host.get("api/v1/types");
     return data;
 }
 
 export const deleteType = async (id: number): Promise<{ message: string }> => {
-  const { data } = await $authHost.delete(`api/type/${id}`);
+  const { data } = await $authHost.delete(`api/v1/types/${id}`);
   return data;
 };
 
 export const createBrand = async (brand: CreateBrandDto): Promise<IBrand> => {
-  const {data} = await $authHost.post("api/brand", brand);
+  const {data} = await $authHost.post("api/v1/brands", brand);
   return data;
 }
 
 export const fetchBrands = async (): Promise<IBrand[]> => {
-    const {data} = await $host.get("api/brand");
+    const {data} = await $host.get("api/v1/brands");
     return data;
 }
 
 export const createDevice = async (device: FormData): Promise<IDevice> => {
-  const {data} = await $authHost.post("api/device", device);
+  const {data} = await $authHost.post("api/v1/devices", device);
   return data;
 }
 
@@ -47,7 +47,7 @@ export const fetchDevices = async (
     page: number, 
     limit: number = 9
 ): Promise<IDevicesResponse> => {
-    const {data} = await $host.get("api/device", {
+    const {data} = await $host.get("api/v1/devices", {
         params: {
             typeId,
             brandId,
@@ -59,11 +59,11 @@ export const fetchDevices = async (
 }
 
 export const fetchOneDevice = async (id: number): Promise<IFullDevice> => {
-    const {data} = await $host.get("api/device/" + id);
+    const {data} = await $host.get("api/v1/devices/" + id);
     return data;
 }
 
 export const setDeviceRating = async (deviceId: number, rate: number): Promise<{ message: string, newRating: number }> => {
-    const { data } = await $authHost.post('api/rating', { deviceId, rate });
+    const { data } = await $authHost.post('api/v1/ratings', { deviceId, rate });
     return data;
 };

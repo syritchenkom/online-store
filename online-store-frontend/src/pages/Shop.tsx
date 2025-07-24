@@ -4,7 +4,7 @@ import TypeBar from "../components/TypeBar";
 import BrandBar from "../components/BrandBar";
 import DeviceList from "../components/DeviceList";
 import { observer } from "mobx-react-lite";
-import { Context } from "../index";
+import { Context } from "../";
 import { fetchBrands, fetchDevices, fetchTypes } from "../http/deviceAPI";
 import Pages from "../components/Pages";
 
@@ -13,7 +13,11 @@ export const Shop = observer(() => {
 
   // Перевірка, чи існує контекст, щоб уникнути помилок під час рендеру
   if (!contextValue) {
-    return <div>Error: Shop component is not wrapped in Context.Provider</div>;
+    return (
+      <div className="text-danger">
+        Błąd: komponent Shop nie jest objęty Context.Provider
+      </div>
+    );
   }
   const { device } = contextValue;
 
@@ -21,6 +25,7 @@ export const Shop = observer(() => {
     // Завантажуємо типи та бренди один раз при монтуванні компонента
     fetchTypes().then((data) => device.setTypes(data));
     fetchBrands().then((data) => device.setBrands(data));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Порожній масив залежностей гарантує, що це виконається лише один раз
 
   useEffect(() => {
@@ -34,7 +39,14 @@ export const Shop = observer(() => {
       device.setDevices(data.rows);
       device.setTotalCount(data.count);
     });
-  }, [device.page, device.selectedType, device.selectedBrand]);
+  }, [
+    device.page,
+    device.selectedType,
+    device.selectedBrand,
+    device.limit,
+    device.setDevices,
+    device.setTotalCount,
+  ]);
 
   return (
     <Container>

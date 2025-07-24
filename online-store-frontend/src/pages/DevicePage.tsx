@@ -105,7 +105,7 @@ export const DevicePage = observer(() => {
           // PL: Po dodaniu, ponownie pobieramy koszyk, aby zaktualizować stan i licznik w NavBar.
 
           const data = await fetchBasket();
-          basket.setItems(data.basket_devices || []);
+          basket.setItems(data.basketDevices || []);
         })
         .catch((e) => {
           alert(

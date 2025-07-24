@@ -8,7 +8,7 @@ import { Context } from "../index"; // Імпортуємо Context
 
 export const AppRouter = observer(() => {
   const contextValue = useContext(Context);
-  console.log("contextValue", contextValue);
+  // console.log("contextValue", contextValue);
 
   if (!contextValue) {
     // Цей випадок не повинен траплятися, якщо AppRouter завжди рендериться всередині Provider
@@ -17,7 +17,7 @@ export const AppRouter = observer(() => {
     return null;
   }
   const { user } = contextValue;
-  console.log("user", user);
+  //console.log("user", user);
 
   return (
     <Routes>

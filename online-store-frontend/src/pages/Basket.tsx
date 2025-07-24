@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Context } from "..";
 import {
@@ -10,20 +10,17 @@ import {
   Image,
   Button,
   Card,
+  Alert,
 } from "react-bootstrap";
-import { addToBasket, fetchBasket, removeFromBasket } from "../http/basketAPI";
-import { IDevice } from "../store/DeviceStore";
-
-// EN: A new interface for displaying grouped items in the basket.
-// PL: Nowy interfejs do wyświetlania zgrupowanych przedmiotów w koszyku.
-interface GroupedBasketItem {
-  device: IDevice;
-  quantity: number;
-}
+import { fetchBasket, removeFromBasket } from "../http/basketAPI";
+import { useNavigate } from "react-router-dom";
+import { CHECKOUT_ROUTE } from "../utils/consts";
 
 export const Basket = observer(() => {
   const context = useContext(Context);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   // EN: Guard against the component being rendered outside of a context provider.
   // PL: Zabezpieczenie przed renderowaniem komponentu poza dostawcą kontekstu.
@@ -41,48 +38,22 @@ export const Basket = observer(() => {
       setLoading(true);
       fetchBasket()
         .then((data) => {
-          basket.setItems(data.basket_devices || []);
+          basket.setItems(data.basketDevices || []);
         })
         .catch((e) => console.error("Failed to fetch basket", e))
         .finally(() => setLoading(false));
     }
   }, [basket, user.isAuth]);
 
-  // EN: Group items by device ID to display quantity. useMemo will prevent recalculation on every render.
-  // PL: Grupuj przedmioty według ID urządzenia, aby wyświetlić ilość. useMemo zapobiegnie ponownemu obliczaniu przy każdym renderowaniu.
-  const groupedItems = useMemo(() => {
-    const groups: { [key: number]: GroupedBasketItem } = {};
-    for (const item of basket.items) {
-      if (!groups[item.device.id]) {
-        groups[item.device.id] = {
-          device: item.device,
-          quantity: 0,
-        };
-      }
-      groups[item.device.id].quantity++;
-    }
-    return Object.values(groups);
-  }, [basket.items]);
-
-  // EN: A generic handler for basket actions to reduce code duplication.
-  // PL: Ogólny handler do obsługi akcji koszyka w celu zmniejszenia duplikacji kodu.
-  const handleAction = (action: Promise<any>) => {
+  const handleRemove = (deviceId: number) => {
     setLoading(true);
-    action
+    removeFromBasket(deviceId)
       .then(() => fetchBasket())
-      .then((data) => basket.setItems(data.basket_devices || []))
+      .then((data) => basket.setItems(data.basketDevices || []))
       .catch((e) =>
         alert(e.response?.data?.message || "Failed to update basket")
       )
       .finally(() => setLoading(false));
-  };
-
-  const handleDecrease = (deviceId: number) => {
-    handleAction(removeFromBasket(deviceId));
-  };
-
-  const handleIncrease = (deviceId: number) => {
-    handleAction(addToBasket(deviceId));
   };
 
   if (loading) {
@@ -96,7 +67,7 @@ export const Basket = observer(() => {
     );
   }
 
-  if (groupedItems.length === 0) {
+  if (!orderSuccess && basket.items.length === 0) {
     return (
       <Container
         className="d-flex justify-content-center align-items-center"
@@ -110,57 +81,69 @@ export const Basket = observer(() => {
   return (
     <Container className="mt-4">
       <h1>Twój koszyk</h1>
-      <Row>
-        <Col md={8}>
-          <ListGroup>
-            {groupedItems.map(({ device, quantity }) => (
-              <ListGroup.Item
-                key={device.id}
-                className="d-flex justify-content-between align-items-center"
-              >
-                <div className="d-flex align-items-center">
-                  <Image
-                    src={process.env.REACT_APP_API_URL + device.img}
-                    style={{ width: "100px", marginRight: "20px" }}
-                    alt={device.name}
-                  />
-                  <div>
-                    <h5>{device.name}</h5>
-                    <p className="mb-0">{device.price} zł</p>
+      {orderSuccess ? (
+        <Alert variant="success">
+          <h4>Dziękujemy za zamówienie!</h4>
+          <p>
+            Twoje zamówienie zostało pomyślnie złożone. Otrzymasz powiadomienie
+            e-mail z dalszymi szczegółami.
+          </p>
+        </Alert>
+      ) : (
+        <Row>
+          <Col md={8}>
+            <ListGroup>
+              {basket.items.map((item) => (
+                <ListGroup.Item
+                  key={item.id}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  <div className="d-flex align-items-center">
+                    <Image
+                      src={process.env.REACT_APP_API_URL + item.device.img}
+                      style={{ width: "100px", marginRight: "20px" }}
+                      alt={item.device.name}
+                    />
+                    <div>
+                      <h5>{item.device.name}</h5>
+                      <p className="mb-0">
+                        {item.device.price} zł x {item.quantity}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="d-flex align-items-center">
                   <Button
-                    variant="outline-secondary"
-                    onClick={() => handleDecrease(device.id)}
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemove(item.device.id)}
                   >
-                    -
+                    Usuń
                   </Button>
-                  <span className="mx-3">{quantity}</span>
-                  <Button
-                    variant="outline-secondary"
-                    onClick={() => handleIncrease(device.id)}
-                  >
-                    +
-                  </Button>
-                </div>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </Col>
-        <Col md={4}>
-          <Card>
-            <Card.Header>Podsumowanie</Card.Header>
-            <Card.Body>
-              <Card.Title>Suma całkowita: {basket.totalPrice} zł</Card.Title>
-              <Card.Text>Liczba produktów: {basket.totalCount}</Card.Text>
-              <Button variant="primary" className="w-100">
-                Złóż zamówienie
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Col>
+          <Col md={4} className="mt-4 mt-md-0">
+            <Card>
+              <Card.Header>Podsumowanie</Card.Header>
+              <Card.Body>
+                <Card.Title>Suma całkowita: {basket.totalPrice} zł</Card.Title>
+                <Card.Text>Liczba produktów: {basket.totalCount}</Card.Text>
+                <Button
+                  variant="primary"
+                  className="w-100"
+                  onClick={() => navigate(CHECKOUT_ROUTE)}
+                >
+                  Przejdź do kasy
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+          {/* The OrderForm will now handle the checkout process */}
+          {/* <Col md={4} className="mt-4 mt-md-0">
+            <OrderForm />
+          </Col> */}
+        </Row>
+      )}
     </Container>
   );
 });
